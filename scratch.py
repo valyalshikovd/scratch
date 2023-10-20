@@ -7,10 +7,15 @@ def scratch(login, password):
     url = "https://www.cs.vsu.ru/brs/login"
 
     data = {
+<<<<<<< HEAD
         # 'login': 'valyalschikov_d_a',
         # 'password': 'vsu1140_',
         'login': login,
         'password': password,
+=======
+        ',
+        'password': 'v_',
+>>>>>>> origin/master
         'button_login': 'Вход'
     }
     # user = fake_useragent.UserAgent.random
