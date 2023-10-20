@@ -9,8 +9,8 @@ def scratch():
     ##url = "https://www.cs.vsu.ru/brs/login"
 
     data = {
-        'login': 'valyalschikov_d_a',
-        'password': 'vsu1140_',
+        ',
+        'password': 'v_',
         'button_login': 'Вход'
     }
 
