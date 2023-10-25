@@ -17,6 +17,7 @@ def scratch(login, password):
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36"
     }
     responce = requests.post(url, data=data, headers=headers).text
+
     soup = BeautifulSoup(responce, "lxml")
     if soup.find(class_="col-sm-4 d-block invalid-feedback") is not None:
         raise ConnectionError('')

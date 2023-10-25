@@ -14,12 +14,13 @@ def bot_init():
 
     @brs_bot.message_handler(commands=['start'])
     def send_welcome(message):
-        data[message.chat.id] = Chat_data
+        data[message.chat.id] = Chat_data()
         brs_bot.send_message(message.chat.id, string_const.new_login)
         data[message.chat.id].login_exist_req = True
 
     @brs_bot.message_handler(content_types=['text'])
     def process_message(message):
+        print(data)
         chat_id = message.chat.id
         message_text = message.text
         if data[chat_id].login_exist_req:
@@ -93,7 +94,6 @@ def bot_init():
                                   reply_markup=kb)
 
     def update(chat_id):
-        updates = []
         curr_data = data[chat_id].user_data
         new_data = ''
         try:
@@ -106,17 +106,33 @@ def bot_init():
                 break
             if curr_data[i].first_att[0] != new_data[i].first_att[0]:
                 flag = False
+                send_sticker(chat_id, int(new_data[i].first_att[0]))
                 brs_bot.send_message(chat_id, "Первая аттестация. \nПредмет: " + new_data[i].subject[0] + " \nБалл: " + new_data[i].first_att[0])
             if curr_data[i].second_att[0] != new_data[i].second_att[0]:
                 flag = False
+                send_sticker(chat_id, int(new_data[i].second_att[0]))
                 brs_bot.send_message(chat_id, "Вторая аттестация. \nПредмет: " + new_data[i].subject[0] + " \nБалл: " +
                                      new_data[i].second_att[0])
             if curr_data[i].third_att[0] != new_data[i].third_att[0]:
                 flag = False
+                send_sticker(chat_id, int(new_data[i].third_att[0]))
                 brs_bot.send_message(chat_id, "Третья аттестация. \nПредмет: " + new_data[i].subject[0] + " \nБалл: " + new_data[i].third_att[0])
 
         if flag:
             brs_bot.send_message(chat_id, "Изменений нет")
         data[chat_id].user_data = new_data
         send_table(chat_id)
+    def send_sticker(chat_id, score):
+        if(score < 25):
+            brs_bot.send_sticker(chat_id, sticker="CAACAgIAAxkBAAEBmv9lORzCq9RqDJse4lKv8Oe5Zl7fVwAC_RUAAmKSWEi-UCy6ZfFEATAE")
+            return
+        if(score < 35):
+            brs_bot.send_sticker(chat_id, sticker="CAACAgIAAxkBAAEBmwFlORzjPDmARO1fkPsYQHJYRiFAawACLxcAAooOSEhMJDWhNZESbDAE")
+            return
+        if(score < 45):
+            brs_bot.send_sticker(chat_id, sticker="CAACAgIAAxkBAAEBmv1lORy6Rzhm0LtMP7oZ4U3UrG7bcgACwhUAAlAdSUhTlP1Qw1XqODAE")
+            return
+        if(score < 51):
+            brs_bot.send_sticker(chat_id, sticker="CAACAgIAAxkBAAEBmvtlORyl3tTX9S6ZrK9-lK8H940ihwACZxoAAnfJYEircBqp9M_xRTAE")
+            return
     brs_bot.polling()
