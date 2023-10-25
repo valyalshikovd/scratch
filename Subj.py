@@ -1,17 +1,4 @@
 class Subj:
-    year = ''
-    semester = ''
-    curse = ''
-    subject = ''
-    reporting = ''
-    lecturer = ''
-    first_att = ''
-    second_att = ''
-    third_att = ''
-    weighted_score = ''
-    additional_score = ''
-    exam_score = ''
-    exam = ''
 
     def __init__(self,
                  year='',
@@ -30,7 +17,7 @@ class Subj:
         self.year = year
         self.semester = semester,
         self.curse = curse,
-        self.subject = subject,
+        self.subject = subject[0:15] + "...",
         self.reporting = reporting,
         self.lecturer = lecturer,
         self.first_att = first_att,
@@ -42,6 +29,6 @@ class Subj:
         self.exam = exam
 
     def to_string(self):
-        s = self.year + " " + self.semester[0] + " " + self.subject[0] + " " + self.lecturer[0] + " " + self.first_att[
-            0] + " " + self.second_att[0] + " " + self.third_att[0]
+        s = "Семестр " + self.semester[0] + " | " + self.subject[0]+ " | " + self.first_att[
+            0] + " | " + self.second_att[0] + " | " + self.third_att[0] + " | " + self.exam_score[0]
         return s
