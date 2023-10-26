@@ -4,7 +4,6 @@ import telebot
 from auth_bot import token
 from scratch import scratch
 from chatData import Chat_data
-import bd
 import string_const
 
 
