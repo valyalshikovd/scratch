@@ -1,15 +1,52 @@
+import threading
+import time
 from telebot import types
-
 import telebot
 from auth_bot import token
 from scratch import scratch
 from chatData import Chat_data
 import string_const
 
-
 def bot_init():
     data = {}
     brs_bot = telebot.TeleBot(token, parse_mode=None)
+
+    def updates():
+        while True:
+
+            for chat_id in data.keys():
+                time.sleep(10)
+                curr_data = data[chat_id].user_data
+                new_data = ''
+                try:
+                    new_data = scratch(data[chat_id].login, data[chat_id].password)
+                except:
+                    pass
+                for i in range(1, len(curr_data)):
+                    if int(curr_data[i].semester[0]) != data[chat_id].current_semester:
+                        break
+                    if curr_data[i].first_att[0] != new_data[i].first_att[0]:
+                        send_sticker(chat_id, int(new_data[i].first_att[0]))
+                        brs_bot.send_message(chat_id,
+                                             "Первая аттестация. \nПредмет: " + new_data[i].subject[0] + " \nБалл: " +
+                                             new_data[i].first_att[0])
+                    if curr_data[i].second_att[0] != new_data[i].second_att[0]:
+                        send_sticker(chat_id, int(new_data[i].second_att[0]))
+                        brs_bot.send_message(chat_id,
+                                             "Вторая аттестация. \nПредмет: " + new_data[i].subject[0] + " \nБалл: " +
+                                             new_data[i].second_att[0])
+                    if curr_data[i].third_att[0] != new_data[i].third_att[0]:
+                        send_sticker(chat_id, int(new_data[i].third_att[0]))
+                        brs_bot.send_message(chat_id,
+                                             "Третья аттестация. \nПредмет: " + new_data[i].subject[0] + " \nБалл: " +
+                                             new_data[i].third_att[0])
+                print("обновлено у " + str(chat_id))
+
+            time.sleep(60)
+
+    thread = threading.Thread(target=updates)
+
+    thread.start()
 
     @brs_bot.message_handler(commands=['start'])
     def send_welcome(message):
@@ -19,9 +56,13 @@ def bot_init():
 
     @brs_bot.message_handler(content_types=['text'])
     def process_message(message):
-        print(data)
         chat_id = message.chat.id
         message_text = message.text
+        print()
+        if chat_id not in data.keys():
+            brs_bot.send_message(chat_id, string_const.error)
+            return
+        # data[chat_id].to_string()
         if data[chat_id].login_exist_req:
             if len(message_text.split(" ")) == 1:
                 data[chat_id].login = message_text
@@ -30,6 +71,7 @@ def bot_init():
                 data[chat_id].password_exist_req = True
                 return
             brs_bot.send_message(chat_id, string_const.login_isnt_valid)
+        # data[chat_id].to_string()
         if data[chat_id].password_exist_req:
             if len(message_text.split(" ")) == 1:
                 data[chat_id].password = message_text
@@ -77,21 +119,23 @@ def bot_init():
 
     @brs_bot.callback_query_handler(func=lambda callback: callback.data)
     def check_callback_data(callback):
-        if callback.data == 'update':
-            update(callback.message.chat.id)
-            return
+        try:
+            print(data)
+            if callback.data == 'update':
+                update(callback.message.chat.id)
+                return
 
-
-        if callback.data == 'nextSem':
-            data[callback.message.chat.id].current_semester += 1
-        if callback.data == 'preSem':
-            data[callback.message.chat.id].current_semester -= 1
-        text = message_generate(data[callback.message.chat.id].current_semester,
-                                data[callback.message.chat.id].user_data)
-        kb = keyboard_generate(data[callback.message.chat.id].current_semester, data[callback.message.chat.id].max_sem)
-        brs_bot.edit_message_text(chat_id=callback.message.chat.id, message_id=callback.message.id, text=text,
-                                  reply_markup=kb)
-
+            if callback.data == 'nextSem':
+                data[callback.message.chat.id].current_semester += 1
+            if callback.data == 'preSem':
+                data[callback.message.chat.id].current_semester -= 1
+            text = message_generate(data[callback.message.chat.id].current_semester,
+                                    data[callback.message.chat.id].user_data)
+            kb = keyboard_generate(data[callback.message.chat.id].current_semester, data[callback.message.chat.id].max_sem)
+            brs_bot.edit_message_text(chat_id=callback.message.chat.id, message_id=callback.message.id, text=text,
+                                      reply_markup=kb)
+        except:
+            pass
     def update(chat_id):
         curr_data = data[chat_id].user_data
         new_data = ''
@@ -100,13 +144,14 @@ def bot_init():
         except:
             pass
         flag = True
-        for i in range(1 , len(curr_data)):
+        for i in range(1, len(curr_data)):
             if int(curr_data[i].semester[0]) != data[chat_id].current_semester:
                 break
             if curr_data[i].first_att[0] != new_data[i].first_att[0]:
                 flag = False
                 send_sticker(chat_id, int(new_data[i].first_att[0]))
-                brs_bot.send_message(chat_id, "Первая аттестация. \nПредмет: " + new_data[i].subject[0] + " \nБалл: " + new_data[i].first_att[0])
+                brs_bot.send_message(chat_id, "Первая аттестация. \nПредмет: " + new_data[i].subject[0] + " \nБалл: " +
+                                     new_data[i].first_att[0])
             if curr_data[i].second_att[0] != new_data[i].second_att[0]:
                 flag = False
                 send_sticker(chat_id, int(new_data[i].second_att[0]))
@@ -115,23 +160,30 @@ def bot_init():
             if curr_data[i].third_att[0] != new_data[i].third_att[0]:
                 flag = False
                 send_sticker(chat_id, int(new_data[i].third_att[0]))
-                brs_bot.send_message(chat_id, "Третья аттестация. \nПредмет: " + new_data[i].subject[0] + " \nБалл: " + new_data[i].third_att[0])
+                brs_bot.send_message(chat_id, "Третья аттестация. \nПредмет: " + new_data[i].subject[0] + " \nБалл: " +
+                                     new_data[i].third_att[0])
 
         if flag:
             brs_bot.send_message(chat_id, "Изменений нет")
         data[chat_id].user_data = new_data
         send_table(chat_id)
+
     def send_sticker(chat_id, score):
-        if(score < 25):
-            brs_bot.send_sticker(chat_id, sticker="CAACAgIAAxkBAAEBmv9lORzCq9RqDJse4lKv8Oe5Zl7fVwAC_RUAAmKSWEi-UCy6ZfFEATAE")
+        if (score < 25):
+            brs_bot.send_sticker(chat_id,
+                                 sticker="CAACAgIAAxkBAAEBmv9lORzCq9RqDJse4lKv8Oe5Zl7fVwAC_RUAAmKSWEi-UCy6ZfFEATAE")
             return
-        if(score < 35):
-            brs_bot.send_sticker(chat_id, sticker="CAACAgIAAxkBAAEBmwFlORzjPDmARO1fkPsYQHJYRiFAawACLxcAAooOSEhMJDWhNZESbDAE")
+        if (score < 35):
+            brs_bot.send_sticker(chat_id,
+                                 sticker="CAACAgIAAxkBAAEBmwFlORzjPDmARO1fkPsYQHJYRiFAawACLxcAAooOSEhMJDWhNZESbDAE")
             return
-        if(score < 45):
-            brs_bot.send_sticker(chat_id, sticker="CAACAgIAAxkBAAEBmv1lORy6Rzhm0LtMP7oZ4U3UrG7bcgACwhUAAlAdSUhTlP1Qw1XqODAE")
+        if (score < 45):
+            brs_bot.send_sticker(chat_id,
+                                 sticker="CAACAgIAAxkBAAEBmv1lORy6Rzhm0LtMP7oZ4U3UrG7bcgACwhUAAlAdSUhTlP1Qw1XqODAE")
             return
-        if(score < 51):
-            brs_bot.send_sticker(chat_id, sticker="CAACAgIAAxkBAAEBmvtlORyl3tTX9S6ZrK9-lK8H940ihwACZxoAAnfJYEircBqp9M_xRTAE")
+        if (score < 51):
+            brs_bot.send_sticker(chat_id,
+                                 sticker="CAACAgIAAxkBAAEBmvtlORyl3tTX9S6ZrK9-lK8H940ihwACZxoAAnfJYEircBqp9M_xRTAE")
             return
+
     brs_bot.polling()
