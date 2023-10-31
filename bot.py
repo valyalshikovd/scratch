@@ -1,48 +1,54 @@
+from telebot import types
 import threading
 import time
-from telebot import types
 import telebot
 from auth_bot import token
 from scratch import scratch
 from chatData import Chat_data
 import string_const
 
+
 def bot_init():
     data = {}
     brs_bot = telebot.TeleBot(token, parse_mode=None)
+
 
     def updates():
         while True:
 
             for chat_id in data.keys():
-                time.sleep(10)
+                print("обновлено у " + str(chat_id))
+                time.sleep(20)
                 curr_data = data[chat_id].user_data
                 new_data = ''
                 try:
                     new_data = scratch(data[chat_id].login, data[chat_id].password)
                 except:
-                    pass
+                    brs_bot.send_message(chat_id,
+                                             "Проблемы с доступом к БРС")
                 for i in range(1, len(curr_data)):
                     if int(curr_data[i].semester[0]) != data[chat_id].current_semester:
                         break
                     if curr_data[i].first_att[0] != new_data[i].first_att[0]:
+                        data[chat_id].user_data = new_data
                         send_sticker(chat_id, int(new_data[i].first_att[0]))
                         brs_bot.send_message(chat_id,
                                              "Первая аттестация. \nПредмет: " + new_data[i].subject[0] + " \nБалл: " +
                                              new_data[i].first_att[0])
                     if curr_data[i].second_att[0] != new_data[i].second_att[0]:
+                        data[chat_id].user_data = new_data
                         send_sticker(chat_id, int(new_data[i].second_att[0]))
                         brs_bot.send_message(chat_id,
                                              "Вторая аттестация. \nПредмет: " + new_data[i].subject[0] + " \nБалл: " +
                                              new_data[i].second_att[0])
                     if curr_data[i].third_att[0] != new_data[i].third_att[0]:
+                        data[chat_id].user_data = new_data
                         send_sticker(chat_id, int(new_data[i].third_att[0]))
                         brs_bot.send_message(chat_id,
-                                             "Третья аттестация. \nПредмет: " + new_data[i].subject[0] + " \nБалл: " +
-                                             new_data[i].third_att[0])
-                print("обновлено у " + str(chat_id))
+                                            "Третья аттестация. \nПредмет: " + new_data[i].subject[0] + " \nБалл: ")
+                
 
-            time.sleep(60)
+            time.sleep(3600)
 
     thread = threading.Thread(target=updates)
 
@@ -136,6 +142,7 @@ def bot_init():
                                       reply_markup=kb)
         except:
             pass
+
     def update(chat_id):
         curr_data = data[chat_id].user_data
         new_data = ''
@@ -185,5 +192,8 @@ def bot_init():
             brs_bot.send_sticker(chat_id,
                                  sticker="CAACAgIAAxkBAAEBmvtlORyl3tTX9S6ZrK9-lK8H940ihwACZxoAAnfJYEircBqp9M_xRTAE")
             return
-
-    brs_bot.polling()
+      while True:
+    try:
+      brs_bot.polling(none_stop=True)
+    except:
+      sleep(0.3)
